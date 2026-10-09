@@ -71,6 +71,7 @@ pure_eval==0.2.4
 pycparser==3.1
 Pygments==2.21.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.2.4
 python-json-logger==4.2.0
 PyYAML==6.0.3
 pyzmq==27.2.0
