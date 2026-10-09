@@ -222,3 +222,4 @@ __marimo__/
 # Project Data
 data/
 *.duckdb
+explore.ipynb
