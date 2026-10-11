@@ -1,0 +1,17 @@
+# dbt project for the NYC Airbnb analysis.
+# duckpipe loads raw_listings into airbnb.duckdb; these models build on it.
+
+name: airbnb
+version: "1.0.0"
+profile: airbnb
+
+model-paths: ["models"]
+
+models:
+  airbnb:
+    staging:
+      # Staging models clean and type the raw data. Views are cheap to rebuild.
+      +materialized: view
+    marts:
+      # Mart models answer business questions. Tables are fast to query and chart.
+      +materialized: table

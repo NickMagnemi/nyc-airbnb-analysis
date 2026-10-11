@@ -1,0 +1,12 @@
+version: 2
+
+# Raw tables that duckpipe loads. Models read them with {{ source('raw', '...') }},
+# never by table name, so dbt knows where every model's data comes from.
+sources:
+  - name: raw
+    schema: main
+    tables:
+      - name: raw_listings
+        description: >
+          Inside Airbnb NYC listings, one row per listing per snapshot, loaded
+          unchanged (all text) by duckpipe. snapshot_date comes from the file name.

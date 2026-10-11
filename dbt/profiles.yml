@@ -1,0 +1,12 @@
+# Tells dbt which database to use. A local DuckDB file needs no password, so
+# this file is safe to commit. If you ever point dbt at a database that does
+# need one, read it with "{{ env_var('NAME') }}" instead of writing it here.
+
+airbnb:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # Relative to the folder you run dbt from: the project root, via scripts/build.sh.
+      path: "{{ env_var('DUCKDB_PATH', 'airbnb.duckdb') }}"
+      threads: 4
