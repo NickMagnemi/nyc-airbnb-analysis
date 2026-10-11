@@ -1,0 +1,20 @@
+[project]
+name = "duckpipe"
+version = "0.1.0"
+description = "A small, config-driven pipeline for any data DuckDB can read"
+requires-python = ">=3.12"
+dependencies = ["duckdb", "python-dotenv"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+# E/F: errors, I: import order, B: likely bugs, S: security (Bandit rules)
+select = ["E", "F", "I", "B", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests use assert, and build SQL from fixed test values, never outside input.
+"tests/*" = ["S101", "S608"]
