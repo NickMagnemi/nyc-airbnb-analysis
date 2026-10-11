@@ -1,6 +1,8 @@
 # duckpipe design
 
-duckpipe loads any data DuckDB can read (CSV, Parquet, JSON, Excel), checks it, transforms it with SQL, and exports it. Everything specific to one dataset lives in `pipeline.toml` and `sql/`; the `duckpipe/` package never changes for new data.
+duckpipe loads any data DuckDB can read (CSV, Parquet, JSON, Excel) and checks it. Everything specific to one dataset lives in `pipeline.toml`; the `duckpipe/` package never changes for new data.
+
+For the Airbnb project, dbt does the transforming: duckpipe handles extract, load and check, and dbt handles transform and test. duckpipe also has simple SQL transforms and exports of its own, for projects that don't use dbt.
 
 ## How data flows
 
@@ -12,12 +14,36 @@ flowchart LR
     P --> E[Extract<br>Downloader]
     E --> L[Load<br>TableLoader + Reader]
     L --> C[Check<br>CheckRunner + Checks]
-    C -->|all passed| T[Transform<br>SqlFileTransform]
     C -->|any failed| stop[CheckFailedError]
+    C -->|all passed, with dbt| D[dbt build<br>staging and mart models + tests]
+    C -->|all passed, without dbt| T[Transform<br>SqlFileTransform]
     T --> O[Export<br>ParquetExport / PostgresExport]
 ```
 
-This is ELT: raw data lands unchanged, checks run on the raw tables, and SQL transforms do the cleaning.
+This is ELT: raw data lands unchanged, checks run on the raw tables, and SQL (in dbt models, or in duckpipe's transform files) does the cleaning.
+
+## Where dbt fits
+
+`scripts/build.sh` runs the two tools in order: `python -m duckpipe pipeline.toml`, then `dbt build`. They're separate commands, not one program calling the other, because DuckDB allows only one program at a time to write to a database file. duckpipe has to finish and close `airbnb.duckdb` before dbt opens it.
+
+```
+dbt/
+├── dbt_project.yml          project settings: staging models are views, marts are tables
+├── profiles.yml             points dbt at airbnb.duckdb (no password needed)
+└── models/
+    ├── sources.yml          declares raw_listings, which duckpipe loads
+    ├── staging/
+    │   ├── stg_listings.sql      clean and type the raw data
+    │   └── _stg_listings.yml     tests on stg_listings
+    └── marts/
+        └── mart_*.sql           one model per business question
+```
+
+- **Staging models** clean one source each: fix types, rename columns, drop personal fields.
+- **Mart models** answer one business question each, built on staging models with `{{ ref('stg_listings') }}`. dbt reads those `ref`s to work out the build order itself.
+- **dbt tests** check the models after they're built, just as duckpipe's checks guard the raw data before. `dbt build` runs each model and then its tests, and stops at the first failure.
+
+Run `dbt docs generate` and then `dbt docs serve` to see a website of your models, with a lineage graph showing how each one is built.
 
 ## Classes and responsibilities
 
@@ -63,6 +89,8 @@ One deliberate choice: there's a single `TableFunctionReader` instead of `CsvRea
 | Constructor injection | Same idea: pass collaborators to `__init__` |
 | `DbContext` + LINQ | `Connection` + SQL strings, with `?` parameters for values |
 | `appsettings.json` / user secrets | `pipeline.toml` / `.env` |
+| EF Core migrations run in order | dbt models, with the order worked out from `ref()` |
+| LINQ projection into a view model | A dbt mart model: a `select` that shapes data for one question |
 | xUnit `[Theory]` + `[InlineData]` | `@pytest.mark.parametrize` |
 | Moq | Small fake classes, like `FakeOpener` in `tests/test_extract.py` |
 | `using` | `with` |
@@ -83,11 +111,17 @@ Implement one module at a time, on its own branch, until its tests pass. Each st
 | 8 | `transforms.py`, `outputs.py` | `python -m pytest tests/test_transforms_and_outputs.py` |
 | 9 | `pipeline.py`, `__main__.py` | `python -m pytest tests/test_pipeline.py` |
 
-When every test passes, `python -m duckpipe pipeline.toml` runs the Airbnb pipeline end to end.
+When every test passes, `python -m duckpipe pipeline.toml` loads and checks the Airbnb data. Then:
+
+| Step | Work | Run |
+| --- | --- | --- |
+| 10 | dbt project and `stg_listings` | `dbt build --project-dir dbt --profiles-dir dbt` |
+| 11 | One-command build | `./scripts/build.sh` |
+| 12 | One mart model per business question | `dbt build --select marts --project-dir dbt --profiles-dir dbt` |
 
 ## Extending it
 
 - **New file format:** add one line to `READERS` and `SUPPORTED_FORMATS`.
 - **New check:** write a small frozen dataclass with `name` and `run`, add it to `CHECK_TYPES`, and add a test.
 - **New output:** write a class with `write`, add it to `OUTPUT_TYPES`, and add a test.
-- **New dataset:** write a new `pipeline.toml` and `sql/` files. No Python changes.
+- **New dataset:** write a new `pipeline.toml`, plus either dbt models or `sql/` transform files. No Python changes.
