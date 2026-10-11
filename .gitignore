@@ -224,3 +224,7 @@ data/
 *.duckdb
 explore.ipynb
 exports/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.claude/settings.local.json
