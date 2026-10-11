@@ -223,3 +223,4 @@ __marimo__/
 data/
 *.duckdb
 explore.ipynb
+exports/
