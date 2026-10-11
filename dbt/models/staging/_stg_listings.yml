@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: stg_listings
+    description: Typed, cleaned listings, one row per listing per snapshot.
+    columns:
+      - name: listing_id
+        description: Inside Airbnb listing ID.
+        data_tests:
+          - not_null
+      - name: snapshot_date
+        description: Date of the Inside Airbnb snapshot the row came from.
+        data_tests:
+          - not_null
+      - name: room_type
+        description: Entire home/apt, Private room, Shared room or Hotel room.
+        data_tests:
+          - not_null
+      # TODO: add an accepted_values test on room_type. Check the dbt docs for
+      #       the exact syntax for your dbt version, since it changed in 1.10.

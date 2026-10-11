@@ -1,12 +1,11 @@
-# Pipeline settings for the NYC Airbnb project.
-# Everything specific to this dataset lives here and in sql/, never in duckpipe/.
+# duckpipe settings for the NYC Airbnb project.
+# duckpipe extracts, loads and checks the raw data. dbt (in dbt/) transforms it,
+# so there are no `transforms` or `outputs` here. See scripts/build.sh.
 # Secrets never go in this file: they live in .env.
 
 database = "airbnb.duckdb"
 data_dir = "data"
 allowed_hosts = ["data.insideairbnb.com"]
-transforms = ["sql/clean_listings.sql"]
-output_tables = ["listings"]
 
 [[sources]]
 table = "raw_listings"
@@ -41,12 +40,3 @@ table = "raw_listings"
 kind = "min_rows"
 minimum = 1000
 per = "snapshot_date"
-
-[[outputs]]
-kind = "parquet"
-directory = "exports"
-
-# Uncomment once you reach the PostgreSQL step. Credentials come from .env.
-# [[outputs]]
-# kind = "postgres"
-# env_prefix = "POSTGRES_"
