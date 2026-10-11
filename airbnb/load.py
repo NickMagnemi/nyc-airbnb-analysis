@@ -24,5 +24,5 @@ def load_snapshots(con: duckdb.DuckDBPyConnection, table: str, files: Path) -> N
                       filename = true,
                       union_by_name = true,
                       all_varchar = true)
-    """  # table name validated and text escaped by safe_sql
+    """  # Table name validated and text escaped by safe_sql
     con.execute(query)
