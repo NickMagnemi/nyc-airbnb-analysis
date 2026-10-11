@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-Data_DIR = Path("data")
+DATA_DIR = Path("data")
 DATABASE_PATH = Path("airbnb.duckdb")
 
 # Table name -> file pattern. To load a new kind of file, add a line here.
