@@ -4,17 +4,27 @@ Fill this in before writing code. Keep each requirement short and testable: if y
 
 ## Problem statement
 
-<!-- One or two sentences: what problem does this project solve, and for whom? -->
+Data Analysts normally rewrite the same code in different variations to load new datasets. duckpipe is mean to solve that, duckpipe can load any type of dataset that DuckDB can read, then checks the data, cleans it with SQL and exports the results, while all being driven by one config file and SQL rather than new Python.
+
+The first project built on duckpipe analyses how Airbnb in New York City changed after Local Law 18, which began enforcement in Sept. 2023
 
 ## Users
 
-<!-- Who uses it? e.g. "An analyst loading a new public dataset" or "a hiring manager reading the repo". -->
+| ID | User | What they need |
+| --- | --- | --- |
+| U1 | A Data Analysis setting up a dataset | Load, check and clean new data without writing new Python |
+| U2 | A reviewer or hiring manager | Read the code, rebuild the results with one command, trust the findings |
+| U3 | a future user of duckpipe | Add a file format, check or output with editing the existing classes |
 
 ## Business questions (Airbnb project)
 
 <!-- The questions your analysis must answer. You listed five at the start; refine them here. -->
 
-1.
+1. Did listings change from short stays to 30+ night minimums after Sept. 2023?
+2. Did entire home listings lower compared to private rooms?
+3. Did hosts with several listings leave the market, or adapt?
+4. Which boroughs and neighbourhoods change the most?
+5. What drives today's prices: area, type, size or ratings
 
 ## Functional requirements
 
