@@ -1,0 +1,52 @@
+# Pipeline settings for the NYC Airbnb project.
+# Everything specific to this dataset lives here and in sql/, never in duckpipe/.
+# Secrets never go in this file: they live in .env.
+
+database = "airbnb.duckdb"
+data_dir = "data"
+allowed_hosts = ["data.insideairbnb.com"]
+transforms = ["sql/clean_listings.sql"]
+output_tables = ["listings"]
+
+[[sources]]
+table = "raw_listings"
+path = "listings_*.csv.gz"
+format = "csv"
+filename_column = "snapshot_date"
+filename_pattern = '(\d{4}-\d{2}-\d{2})'
+options = { all_varchar = true }
+
+# File name -> download link from insideairbnb.com/get-the-data.
+# Each file name must contain its snapshot date.
+[sources.downloads]
+# "listings_YYYY-MM-DD.csv.gz" = "https://data.insideairbnb.com/..."
+
+[[checks]]
+table = "raw_listings"
+kind = "required_columns"
+columns = ["id", "host_id", "price", "room_type", "neighbourhood_cleansed", "snapshot_date"]
+
+[[checks]]
+table = "raw_listings"
+kind = "not_null"
+column = "id"
+
+[[checks]]
+table = "raw_listings"
+kind = "unique"
+columns = ["id", "snapshot_date"]
+
+[[checks]]
+table = "raw_listings"
+kind = "min_rows"
+minimum = 1000
+per = "snapshot_date"
+
+[[outputs]]
+kind = "parquet"
+directory = "exports"
+
+# Uncomment once you reach the PostgreSQL step. Credentials come from .env.
+# [[outputs]]
+# kind = "postgres"
+# env_prefix = "POSTGRES_"
